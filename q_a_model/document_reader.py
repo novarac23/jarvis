@@ -7,7 +7,7 @@ class DocumentReader:
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.model = TFAutoModelForQuestionAnswering.from_pretrained(model_name, from_pt=True)
 
-    def get_answer(self, question, context, nbest=5, null_thresh=-1.1585063934326172):
+    def get_answer(self, question, context, num_of_answers=5, null_thresh=-1.1585063934326172):
         inputs = self.tokenizer.encode_plus(question, context, add_special_tokens=True, return_special_tokens_mask=True, return_tensors='tf')
         start_scores, end_scores = self.model(inputs)
 
@@ -52,7 +52,7 @@ class DocumentReader:
         seen_predictions = []
 
         for pred in prelim_preds:
-            if len(nbest) >= 5:
+            if len(nbest) >= num_of_answers:
                 break
 
             if pred.start_index > 0:
