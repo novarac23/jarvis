@@ -7,12 +7,18 @@ class DocumentRetriever:
     def __init__(self, config={'host':'localhost', 'port':9200}):
         self.es = Elasticsearch([config])
 
-    def retrieve_docs(self, question, index, size=3, query=None):
+    def retrieve_docs(self, question, index, size=3, query=None, title=True):
+        if title:
+            search_subject = 'document_title'
+        else:
+            search_subject = 'document_text'
+        
+        
         if not query:
             query = {
                 'query': {
                     'match': {
-                        'document_title': question
+                        search_subject: question
                     }
                 }
             }
