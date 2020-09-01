@@ -12,12 +12,6 @@ from speech_to_text.speech_to_text import SpeechToText
 from q_a_model.document_retriever import DocumentRetriever
 from trigger_word_model.trigger_word_detection import TriggerWordDetection
 
-
-
-
-
-
-
 #question = "When was Michael Jordan born?" # got it right w/ title=True and Title=False
 #question = "what is population of New York city?" # got it right w/ Title=True and Title=False
 #question = "Who was the first president of United States?" # got it right w/ Title=True and Title=False
@@ -28,6 +22,10 @@ from trigger_word_model.trigger_word_detection import TriggerWordDetection
 # question = "When did World War II start?" # worked with Title=True
 # question = "When did French revolution begin?" # worked with title=False
 # question = "When did French revolution start?" # worked with Title=False
+
+# siffing through results and returning the best answer (that can be an empty string or an actual answer)
+# trying out w/ title=True if the initial results are empty
+
 
 app = Flask(__name__)
 
@@ -89,6 +87,8 @@ def hello_world():
             except Exception as e:
                 print(f'We could not process item under {i}. Reason is: {e}')
 
+        best_answer = _get_best_answer(results)
+
         return jsonify(str(results))
     else:
         return render_template("index.html")
@@ -97,3 +97,6 @@ def get_chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
+
+def _get_best_answer(resulsts):
+    return arr.sort(key=lambda x: x[1], reverse=True) #sort by key
