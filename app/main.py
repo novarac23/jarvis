@@ -1,14 +1,22 @@
-import tensorflow as tf
+import os
 import json
-from flask import jsonify
-from trigger_word_model.trigger_word_detection import TriggerWordDetection
-from speech_to_text.speech_to_text import SpeechToText
+import tensorflow as tf
 
+from flask import jsonify
 from pydub import AudioSegment
 from flask import Flask, render_template, request
+
 from q_a_model.document_reader import DocumentReader
 from q_a_model.paragraph_ranker import ParagraphRanker
+from speech_to_text.speech_to_text import SpeechToText
 from q_a_model.document_retriever import DocumentRetriever
+from trigger_word_model.trigger_word_detection import TriggerWordDetection
+
+
+
+
+
+
 
 #question = "When was Michael Jordan born?" # got it right w/ title=True and Title=False
 #question = "what is population of New York city?" # got it right w/ Title=True and Title=False
@@ -23,10 +31,11 @@ from q_a_model.document_retriever import DocumentRetriever
 
 app = Flask(__name__)
 
-ES_INDEX = "wikipedia-full"
-ES_CONFIG = {'host':'localhost', 'port':9200}
-MODEL_NAME = "ktrapeznikov/albert-xlarge-v2-squad-v2"
-TOKENIZER_NAME = "ktrapeznikov/albert-xlarge-v2-squad-v2"
+ES_INDEX = os.environ.get('ES_INDEX')
+ES_CONFIG = {'host': os.environ.get('ES_HOST'), 'port': os.environ.get('ES_PORT')}
+MODEL_NAME = os.environ.get('MODEL_NAME')
+TOKENIZER_NAME = os.environ.get('TOKENIZER_NAME')
+TRIGGER_WORD_MODEL_PATH = os.environ.get('TRIGGER_WORD_MODEL_PATH')
 
 @app.route('/get_answer', methods=['GET', 'POST'])
 def hello_world():
@@ -43,7 +52,7 @@ def hello_world():
         background = background.set_frame_rate(44100)
         background.export(raW_audio_file_name, format="wav")
 
-        twd = TriggerWordDetection('/home/novarac23/Projects/jarvis/trigger_word_model/saved_model/v2_3')
+        twd = TriggerWordDetection(TRIGGER_WORD_MODEL_PATH)
         predictions = twd.detect_trigger_word(raW_audio_file_name)
         audio_path = twd.cut_audio_on_trigger_word(raW_audio_file_name, predictions, .95)
 
@@ -52,7 +61,6 @@ def hello_world():
 
         stt = SpeechToText(audio_path)
         question = stt.convert()
-        #import pdb; pdb.set_trace()
         question += "?"
         print(question)
 
@@ -81,10 +89,7 @@ def hello_world():
             except Exception as e:
                 print(f'We could not process item under {i}. Reason is: {e}')
 
-        print(results)
-
         return jsonify(str(results))
-        #return render_template('index.html', request="POST", potential_answers=str(results))
     else:
         return render_template("index.html")
 
