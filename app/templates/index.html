@@ -1,0 +1,21 @@
+<html>
+  <head>
+    <title>Simple Recorder.js demo with record, stop and pause - addpipe.com</title>
+  </head>
+  <body>
+    <h1>JARVIS Demo</h1>
+
+    <div id="controls">
+     <button id="recordButton">Record</button>
+     <button id="pauseButton" disabled>Pause</button>
+     <button id="stopButton" disabled>Stop</button>
+    </div>
+    <div id="formats">Format: start recording to see sample rate</div>
+    <p><strong>Recordings:</strong></p>
+    <ol id="recordingsList"></ol>
+    <div>{{potential_answers}}</div>
+    <!-- inserting these scripts at the end to be able to use all the elements in the DOM -->
+    <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
