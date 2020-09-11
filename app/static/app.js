@@ -48,13 +48,9 @@ function startRecording() {
             create an audio context after getUserMedia is called
             sampleRate might change after getUserMedia is called, like it does on macOS when recording through AirPods
             the sampleRate defaults to the one set in your OS for your playback device
-
         */
         //audioContext = new AudioContext({sampleRate: 44100});
         audioContext = new AudioContext({sampleRate: 44100});
-
-        //update the format
-        document.getElementById("formats").innerHTML="Format: 1 channel pcm @ "+audioContext.sampleRate+"Hz"
 
         /*  assign to gumStream for later use  */
 
@@ -142,23 +138,25 @@ function createDownloadLink(blob) {
     //add the new audio element to li
     li.appendChild(au);
 
-    //add the filename to the li
-    li.appendChild(document.createTextNode(filename+".wav "))
-
     //add the save to disk link to li
     li.appendChild(link);
 
     //upload link
     var upload = document.createElement('a');
     upload.href="#";
-    upload.innerHTML = "Upload124";
+    upload.innerHTML = "Get Answer";
     upload.addEventListener("click", function(event){
           var xhr=new XMLHttpRequest();
+          var waiting_div = document.createElement("div");   // Create a <button> element
+          waiting_div.innerHTML = "getting an answer for you... (this might take up to 3 mins)";                   // Insert text
+          document.body.appendChild(waiting_div);
           xhr.onload=function(e) {
               if(this.readyState === 4) {
                   console.log("Server returned: ",e.target.responseText);
+		  parsed_json = JSON.parse(e.target.responseText);
                   var div = document.createElement("div");   // Create a <button> element
-                  div.innerHTML = e.target.responseText;                   // Insert text
+                  div.innerHTML = parsed_json.message;                   // Insert text
+		  document.body.removeChild(waiting_div)
                   document.body.appendChild(div);
               }
           };
@@ -173,3 +171,4 @@ function createDownloadLink(blob) {
     //add the li element to the ol
     recordingsList.appendChild(li);
 }
+

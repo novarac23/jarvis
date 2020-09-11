@@ -5,7 +5,7 @@ import tensorflow as tf
 
 from flask import jsonify
 from pydub import AudioSegment
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, make_response
 
 from q_a_model.document_reader import DocumentReader
 from q_a_model.paragraph_ranker import ParagraphRanker
@@ -24,21 +24,32 @@ TRIGGER_WORD_MODEL_PATH = os.environ.get('TRIGGER_WORD_MODEL_PATH')
 @app.route('/get_answer', methods=['GET', 'POST'])
 def hello_world():
     if request.method == "POST":
-        raw_audio_file_name = f"{random.randint(1, 100000)}.wav"
+        try:
+            raw_audio_file_name = f"{random.randint(1, 100000)}.wav"
 
-        f = open(raw_audio_file_name, 'wb')
-        request.files['audio_data'].save(f)
-        f.close()
-        
-        _pre_process_audio(raw_audio_file_name)
-        results = _get_answer(raw_audio_file_name)
-        best_answer = _get_best_answer(results)
-
-        if best_answer[0] == '':
-            results = _get_answer(raw_audio_file_name, title=False)
+            f = open(raw_audio_file_name, 'wb')
+            request.files['audio_data'].save(f)
+            f.close()
+            
+            _pre_process_audio(raw_audio_file_name)
+            results, question = _get_answer(raw_audio_file_name)
             best_answer = _get_best_answer(results)
 
-        return jsonify(str(best_answer))
+            if best_answer[0] == '':
+                results, question = _get_answer(raw_audio_file_name, title=False)
+                best_answer = _get_best_answer(results)
+
+            os.system(f'rm -r {raw_audio_file_name}')
+            os.system(f'rm -r cut_{raw_audio_file_name}')
+            answer = best_answer[0]
+            probability = best_answer[1]
+            return make_response(jsonify(message=f'Your question: {question} - Answer: {answer} - Probability: {probability}'), 200)
+        except UnboundLocalError as e:
+            return make_response(jsonify(message=f'sorry we couldn not find the trigger word. Do you mind trying a rerecording yourself?'), 500)
+        except TypeError as e:
+            return make_response(jsonify(message=f'sorry we couldn not find the trigger word. Do you mind trying a rerecording yourself?'), 500)
+        except Exception as e:
+            return make_response(jsonify(message=f'something went wrong, please try again. Here is the exception: {e}'), 500)
     else:
         return render_template("index.html")
 
@@ -48,6 +59,7 @@ def get_chunks(lst, n):
         yield lst[i:i + n]
 
 def _get_best_answer(results):
+    print("--printing all results--")
     print(results)
     non_empty_answers = []
 
@@ -75,12 +87,14 @@ def _get_answer(raw_audio_file_name, title=True):
     audio_path = twd.cut_audio_on_trigger_word(raw_audio_file_name, predictions, .95)
 
     ind = tf.argmax(predictions, axis=1)
+    print("--printing highest probability for trigger work--")
     print(predictions[0, int(ind[0][0]), 0])
 
     stt = SpeechToText(audio_path)
     question = stt.convert()
     question += "?"
     question = question.lower()
+    print("--printing question--")
     print(question)
 
     dr = DocumentRetriever(ES_CONFIG)
@@ -108,5 +122,4 @@ def _get_answer(raw_audio_file_name, title=True):
         except Exception as e:
             print(f'We could not process item under {i}. Reason is: {e}')
 
-    return results
-
+    return results, question
