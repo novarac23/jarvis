@@ -13,22 +13,6 @@ from speech_to_text.speech_to_text import SpeechToText
 from q_a_model.document_retriever import DocumentRetriever
 from trigger_word_model.trigger_word_detection import TriggerWordDetection
 
-#question = "When was Michael Jordan born?" # got it right w/ title=True and Title=False
-#question = "what is population of New York city?" # got it right w/ Title=True and Title=False
-#question = "Who was the first president of United States?" # got it right w/ Title=True and Title=False
-#question = "How tall is Eiffel Tower in Paris?" # got it right w/ title=True
-#question = "How many people live in Columbus Ohio?" # failed to answer with both Title=True and Title=False
-#question = "What is the population of Columbus Ohio?" # worked with Title=True
-# question = "When was Novak Djokovic born?" # worked with Title=True
-# question = "When did World War II start?" # worked with Title=True
-# question = "When did French revolution begin?" # worked with title=False
-# question = "When did French revolution start?" # worked with Title=False
-
-# add an API key for speech to text
-# test everything out
-# figure out why some recorded audios over the web are not working but they are working when recorded with audacity
-# deploy
-
 app = Flask(__name__)
 
 ES_INDEX = os.environ.get('ES_INDEX')
